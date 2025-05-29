@@ -1,87 +1,151 @@
 # Importamos las librerías necesarias
 import requests
 import pandas as pd
-import json
+import time
+from datetime import datetime, timedelta
 
 # Definimos las constantes para la API de REE
 BASE_URL = "https://apidatos.ree.es/es/datos/"
 
 HEADERS = {
     "accept": "application/json",
-    "content-type": "application/json",
-    "host": "apidatos.ree.es"
+    "content-type": "application/json"
 }
 
 ENDPOINTS = {
-    "demanda": "demanda/evolucion",
-    "balance": "balance/balance-electrico",
-    "generacion": "generacion/potencia-instalada",
-    "intercambios": "intercambios/todas-fronteras-programados"
+    "demanda": ("demanda/evolucion", "hour"),
+    "balance": ("balance/balance-electrico", "day"),
+    "generacion": ("generacion/potencia-instalada", "month"),
+    "intercambios": ("intercambios/todas-fronteras-programados", "day")
 }
 
-PARAMS = {
-    "start_date": "2018-01-01T00:00",
-    "end_date": "2018-12-31T23:59",
-    "time_trunc": "month",
-    "geo_trunc": "electric_system",
-    "geo_limit": "peninsular",
-    "geo_ids": "8741"
-}
+# Función para consultar un endpoint, según los parámetros dados, de la API de REE 
+# y devolver los datos en formato JSON
+def get_data(endpoint_name, endpoint_info, params):
+    path, time_trunc = endpoint_info
+    params["time_trunc"] = time_trunc
+    url = BASE_URL + path
 
-# Función para consultar un endpoint de la API de REE y devolver los datos en formato JSON
-def get_data(endpoint_name, endpoint_path):
-    url = BASE_URL + endpoint_path
-    response = requests.get(url, headers=HEADERS, params=PARAMS)
-    json_data = response.json()
+    print(f"Descargando {endpoint_name} → {params['start_date']} a {params['end_date']}")
 
-    all_parsed_data = []
+    try:
+        response = requests.get(url, headers=HEADERS, params=params)
+        # Si la búsqueda no fue bien, se imprime un mensaje de error
+        if response.status_code != 200:
+            print(f"Error {response.status_code} al consultar {endpoint_name}")
+            print(response.text[:150])
+            return []
+        response_data = response.json()
+    except Exception as e:
+        print(f"Error al conectar con la API: {e}")
+        return []
 
-    for item in json_data.get("included", []):
-        item_attributes = item.get("attributes", {})
-        
-        # Obtenemos el nombre de la categoría principal
-        primary_category_name = item_attributes.get("title")
+    data = []
 
-        # Verificamos si el item tiene "content" y asumimos que es una estructura compleja
-        if "content" in item_attributes:
-            for sub_item in item_attributes["content"]:
-                sub_item_attributes = sub_item.get("attributes", {})
-                sub_category_name = sub_item_attributes.get("title")
-                values = sub_item_attributes.get("values", [])
-                for entry in values:
-                    entry["primary_category"] = primary_category_name
-                    entry["sub_category"] = sub_category_name
-                    all_parsed_data.append(entry)
+    # Verificamos si el item tiene "content" y asumimos que es una estructura compleja
+    for item in response_data.get("included", []):
+        attrs = item.get("attributes", {})
+        category = attrs.get("title")
+
+        if "content" in attrs:
+            for sub in attrs["content"]:
+                sub_attrs = sub.get("attributes", {})
+                sub_cat = sub_attrs.get("title")
+                for entry in sub_attrs.get("values", []):
+                    entry["primary_category"] = category
+                    entry["sub_category"] = sub_cat
+                    data.append(entry)
         else:
             # Procesamos las estructuras más simple (demanda, generacion), asumiendo que no hay subcategorías
-            values = item_attributes.get("values", [])
-            for entry in values:
-                entry["primary_category"] = primary_category_name
+            for entry in attrs.get("values", []):
+                entry["primary_category"] = category
                 entry["sub_category"] = None
-                all_parsed_data.append(entry)
+                data.append(entry)
 
-    return all_parsed_data
+    return data
 
-def main_consolidated_df():
+# Función para extraer los datos de los últimos x años
+# Devolviendo un DataFrame de Pandas
+def get_data_for_last_x_years(num_years=3):
     all_dfs = []
+    current_date = datetime.now()
+    # Calculamos el año de inicio a partir del año actual
+    start_year_limit = current_date.year - num_years
 
-    for name, path in ENDPOINTS.items():
-        raw_data_list = get_data(name, path)
-        
-        if raw_data_list:
-            df_temp = pd.DataFrame(raw_data_list)
-            all_dfs.append(df_temp)
+    # Iteramos sobre cada año
+    for year in range(start_year_limit, current_date.year + 1):
+        # Iteramos sobre cada mes
+        for month in range(1, 13):
+            # Definimos el inicio de cada mes
+            month_start = datetime(year, month, 1)
 
-    # Concatenamos todos los DataFrames en uno solo
+            # Si el inicio del mes está en el futuro, lo saltamos
+            if month_start > current_date:
+                continue
+
+            # Calculamos el final del mes actual
+            month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(minutes=1)
+
+            # Ajustamos la fecha final por si es mayor que la fecha actual
+            if month_end > current_date:
+                end_date_for_request = current_date
+            else:
+                end_date_for_request = month_end
+
+            # Iteramos sobre cada endpoint
+            for name, (path, granularity) in ENDPOINTS.items():
+                params = {
+                    "start_date": month_start.strftime("%Y-%m-%dT%H:%M"),
+                    "end_date": end_date_for_request.strftime("%Y-%m-%dT%H:%M"),
+                    "geo_trunc": "electric_system",
+                    "geo_limit": "peninsular",
+                    "geo_ids": "8741"
+                }
+
+                month_data = get_data(name, (path, granularity), params)
+
+                # Y sacamos los datos
+                if month_data:
+                    df = pd.DataFrame(month_data)
+                    #Lidiamos con posibles errores de la columna "datetime"
+
+                    if 'datetime' not in df.columns:
+                        print(f"Warning: 'datetime' column not found in data for {name} for {year}-{month}. Skipping this chunk.")
+                        continue
+
+                    df['datetime'] = df['datetime'].astype(str)
+
+                    df['datetime'] = pd.to_datetime(df['datetime'], errors='coerce')
+
+                    df.dropna(subset=['datetime'], inplace=True)
+
+                    if df.empty:
+                        print(f"Warning: DataFrame for {name} for {year}-{month} became empty after datetime conversion and NaT drop. Skipping this chunk.")
+                        continue
+
+                    if not pd.api.types.is_datetime64_any_dtype(df['datetime']):
+                        print(f"Error: 'datetime' column for {name} for {year}-{month} is not of datetime type after conversion. Actual dtype: {df['datetime'].dtype}. Skipping this chunk.")
+                        continue
+
+                    # Obtenemos nuevas columnas de año, mes, día, hora y endpoint
+                    df['year'] = df['datetime'].dt.year
+                    df['month'] = df['datetime'].dt.month
+                    df['day'] = df['datetime'].dt.day
+                    df['hour'] = df['datetime'].dt.strftime('%H:%M:%S')
+                    df['endpoint'] = name
+
+                    # Reordenamos las columnas
+                    df = df[['value', 'percentage', 'datetime', 'primary_category',
+                             'sub_category', 'year', 'month', 'day', 'hour', 'endpoint']]
+                    all_dfs.append(df)
+
+                time.sleep(1)
+
     if all_dfs:
-        final_df = pd.concat(all_dfs, ignore_index=True)
-        return final_df
+        return pd.concat(all_dfs, ignore_index=True)
     else:
-        return pd.DataFrame() # Devuelve un DataFrame vacío si no hay datos
+        return pd.DataFrame()
 
-
-if __name__ == "__main__":
-    # Llama a la función que devuelve el DataFrame consolidado
-    ree_data_df = main_consolidated_df()
-
+# Obtenemos los datos de los últimos 3 años a partir de hoy
+ree_data_df = get_data_for_last_x_years(num_years=3)
 ree_data_df
