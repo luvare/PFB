@@ -26,18 +26,13 @@ def get_data(endpoint_name, endpoint_info, params):
     params["time_trunc"] = time_trunc
     url = BASE_URL + path
 
-    print(f"Descargando {endpoint_name} → {params['start_date']} a {params['end_date']}")
-
     try:
         response = requests.get(url, headers=HEADERS, params=params)
-        # Si la búsqueda no fue bien, se imprime un mensaje de error
+        # Si la búsqueda no fue bien, se devuelve una lista vacía
         if response.status_code != 200:
-            print(f"Error {response.status_code} al consultar {endpoint_name}")
-            print(response.text[:150])
             return []
         response_data = response.json()
     except Exception as e:
-        print(f"Error al conectar con la API: {e}")
         return []
 
     data = []
@@ -72,9 +67,8 @@ def get_data_for_last_x_years(num_years=3):
     # Calculamos el año de inicio a partir del año actual
     start_year_limit = current_date.year - num_years
 
-    # Iteramos sobre cada año
+    # Iteramos sobre cada año y mes
     for year in range(start_year_limit, current_date.year + 1):
-        # Iteramos sobre cada mes
         for month in range(1, 13):
             # Definimos el inicio de cada mes
             month_start = datetime(year, month, 1)
@@ -107,24 +101,10 @@ def get_data_for_last_x_years(num_years=3):
                 # Y sacamos los datos
                 if month_data:
                     df = pd.DataFrame(month_data)
-                    #Lidiamos con posibles errores de la columna "datetime"
-
-                    if 'datetime' not in df.columns:
-                        print(f"Warning: 'datetime' column not found in data for {name} for {year}-{month}. Skipping this chunk.")
-                        continue
-
-                    df['datetime'] = df['datetime'].astype(str)
-
-                    df['datetime'] = pd.to_datetime(df['datetime'], errors='coerce')
-
-                    df.dropna(subset=['datetime'], inplace=True)
-
-                    if df.empty:
-                        print(f"Warning: DataFrame for {name} for {year}-{month} became empty after datetime conversion and NaT drop. Skipping this chunk.")
-                        continue
-
-                    if not pd.api.types.is_datetime64_any_dtype(df['datetime']):
-                        print(f"Error: 'datetime' column for {name} for {year}-{month} is not of datetime type after conversion. Actual dtype: {df['datetime'].dtype}. Skipping this chunk.")
+                    #Lidiamos con problemas de zona horaria en la columna "datetime"
+                    try:
+                        df['datetime'] = pd.to_datetime(df['datetime'], utc=True)
+                    except Exception as e:
                         continue
 
                     # Obtenemos nuevas columnas de año, mes, día, hora y endpoint
