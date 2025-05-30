@@ -111,7 +111,7 @@ def get_data_for_last_x_years(num_years=3):
                     df['year'] = df['datetime'].dt.year
                     df['month'] = df['datetime'].dt.month
                     df['day'] = df['datetime'].dt.day
-                    df['hour'] = df['datetime'].dt.strftime('%H:%M:%S')
+                    df['hour'] = df['datetime'].dt.hour
                     df['endpoint'] = name
 
                     # Reordenamos las columnas
