@@ -6,6 +6,5 @@ datetime
 plotly.express
 pymysql
 folium
-json
 matplotlib.pyplot
 seaborn
