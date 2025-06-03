@@ -7,9 +7,9 @@ uuid
 pymysql
 streamlit
 plotly.express
-streamlit run yourscript.py
+streamlit
 pickle
 sklearn.linear_model
 sklearn.model_selection
 sklearn.prepocessing
-import seaborn as sns
+import
