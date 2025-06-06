@@ -227,7 +227,10 @@ def get_data_for_last_x_years(num_years=3):
         schedule.every(1).hours.do(actualizar_datos_desde_api)
 
         while True:
+            os.write(1, b'Scheduler: tarea empezada.\n')
+            st.write("hello world")
             schedule.run_pending()
+            os.write(1, b'Scheduler: tarea acabada, pausando...\n')
             tiempo.sleep(60)
 
     # 🧵 Lanza el hilo para ejecución en background
@@ -317,6 +320,11 @@ def main():
         table = st.selectbox("Selecciona la tabla que deseas consultar:", [
             "demanda", "balance", "generacion", "intercambios", "intercambios_baleares"
         ])
+
+        if st.button("Actualizar datos desde la API"):
+            with st.spinner("Actualizando datos desde la API..."):
+                get_data_for_last_x_years()
+                st.success("Datos actualizados correctamente.")
 
         with st.spinner("Consultando Supabase..."):
             df = get_data_from_supabase(table, start_date, end_date)
