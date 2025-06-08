@@ -319,12 +319,6 @@ def main():
             st.session_state["tabla_seleccionada_en_tab2"] = tabla
             df = get_data_from_supabase(tabla, start_date_query, end_date_query)
 
-        # Botón de actualización de datos desde la API
-        if st.button("Actualizar datos desde la API"):
-            with st.spinner("Actualizando datos desde la API (puede tardar)..."):
-                get_data_for_last_x_years()
-                st.success("Datos actualizados correctamente.")
-
         # Mostrar resultados después de la consulta de cualquier modo
         if not df.empty:
             st.session_state["ree_data"] = df
@@ -566,7 +560,17 @@ def main():
                 fig = px.bar(df, x="datetime", y="value", color="primary_category", barmode="group", title="Balance Eléctrico")
                 st.plotly_chart(fig, use_container_width=True)
             elif tabla == "generacion":
-                fig = px.line(df, x="datetime", y="value", color="primary_category", title="Generación")
+                df['date'] = df['datetime'].dt.date  # Para reducir a nivel diario (si no lo tienes)
+
+                df_grouped = df.groupby(['date', 'primary_category'])['value'].sum().reset_index()
+
+                fig = px.line(
+                    df_grouped,
+                    x="date",
+                    y="value",
+                    color="primary_category",
+                    title="Generación diaria agregada por tipo"
+                )
                 st.plotly_chart(fig, use_container_width=True)
             elif tabla == "intercambios":
                 st.subheader("Mapa Coroplético de Intercambios Eléctricos")
@@ -684,7 +688,7 @@ def main():
             st.plotly_chart(fig2, use_container_width=True)
 
         else:
-            st.markdown("Nada que ver... de momento 😴")
+            st.markdown("Nada que ver... de momento")
 
 if __name__ == "__main__":
     main()
