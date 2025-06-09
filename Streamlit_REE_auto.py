@@ -577,12 +577,12 @@ def main():
             elif tabla == "balance":
                 fig = px.bar(df, x="datetime", y="value", color="primary_category", barmode="group", title="Balance Eléctrico")
                 st.plotly_chart(fig, use_container_width=True)
-                 st.markdown(
-                                "**Balance eléctrico diario por categoría**\n\n"
-                                "Este gráfico representa el balance energético entre las distintas fuentes y usos diarios. Cada barra agrupa los componentes "
-                                "principales del sistema: generación, consumo, pérdidas y exportaciones.\n\n"
-                                "Es útil para entender si hay superávit, déficit o equilibrio en la red cada día, y cómo se distribuye el uso de energía entre sectores."
-                            )
+                st.markdown(
+                    "**Balance eléctrico diario por categoría**\n\n"
+                    "Este gráfico representa el balance energético entre las distintas fuentes y usos diarios. Cada barra agrupa los componentes "
+                    "principales del sistema: generación, consumo, pérdidas y exportaciones.\n\n"
+                    "Es útil para entender si hay superávit, déficit o equilibrio en la red cada día, y cómo se distribuye el uso de energía entre sectores."
+                )
             
             elif tabla == "generacion":
                 df['date'] = df['datetime'].dt.date  # Para reducir a nivel diario (si no lo tienes)
@@ -603,7 +603,7 @@ def main():
                     "(gas, nuclear, etc.).\n\n"
                     "Esta gráfica permite observar patrones como aumentos de producción renovable en días soleados o ventosos, así como la estabilidad "
                     "de tecnologías de base como la nuclear. Es clave para analizar la transición energética."
-                    )
+                )
 
             
             elif tabla == "intercambios":
@@ -653,16 +653,16 @@ def main():
                 ).add_to(world_map)
 
                 st.markdown(
-                "**Mapa de intercambios internacionales de energía – Contexto del apagón del 28 de abril de 2025**\n\n"
-                "Este mapa revela cómo se comportaron los **flujos internacionales de energía** en torno al **apagón del 28 de abril de 2025**.\n\n"
-                "Una **disminución en los intercambios con Francia o Marruecos** podría indicar una disrupción en el suministro internacional "
-                "o un corte de emergencia.\n\n"
-                "Si **España aparece como exportadora neta incluso durante el apagón**, esto sugiere que el problema no fue de generación, "
-                "sino posiblemente **interno** (fallo en la red o desconexión de carga).\n\n"
-                "La inclusión de **Andorra y Marruecos** proporciona un contexto más completo del comportamiento eléctrico en la península "
-                "y el norte de África.\n\n"
-                "Este gráfico es crucial para analizar si los intercambios internacionales actuaron de forma inusual, lo cual puede dar pistas "
-                "sobre causas externas o coordinación regional durante el evento."
+                    "**Mapa de intercambios internacionales de energía – Contexto del apagón del 28 de abril de 2025**\n\n"
+                    "Este mapa revela cómo se comportaron los **flujos internacionales de energía** en torno al **apagón del 28 de abril de 2025**.\n\n"
+                    "Una **disminución en los intercambios con Francia o Marruecos** podría indicar una disrupción en el suministro internacional "
+                    "o un corte de emergencia.\n\n"
+                    "Si **España aparece como exportadora neta incluso durante el apagón**, esto sugiere que el problema no fue de generación, "
+                    "sino posiblemente **interno** (fallo en la red o desconexión de carga).\n\n"
+                    "La inclusión de **Andorra y Marruecos** proporciona un contexto más completo del comportamiento eléctrico en la península "
+                    "y el norte de África.\n\n"
+                    "Este gráfico es crucial para analizar si los intercambios internacionales actuaron de forma inusual, lo cual puede dar pistas "
+                    "sobre causas externas o coordinación regional durante el evento."
                 )
 
                 # Mostrar en Streamlit
@@ -677,11 +677,11 @@ def main():
 
                 df_ib_grouped['value'] = df_ib_grouped['value'].abs()
                 st.markdown(
-                "**Intercambios de energía con Baleares (Primer semestre 2025)**\n\n"
-                "Durante el primer semestre de **2025**, las **salidas de energía hacia Baleares** superan consistentemente a las entradas, "
-                "lo que indica que el sistema peninsular actúa mayormente como **exportador neto de energía**.\n\n"
-                "Ambos flujos muestran una **tendencia creciente hacia junio**, especialmente las salidas, lo que podría reflejar un aumento "
-                "en la demanda en Baleares o una mejora en la capacidad exportadora del sistema."
+                    "**Intercambios de energía con Baleares (Primer semestre 2025)**\n\n"
+                    "Durante el primer semestre de **2025**, las **salidas de energía hacia Baleares** superan consistentemente a las entradas, "
+                    "lo que indica que el sistema peninsular actúa mayormente como **exportador neto de energía**.\n\n"
+                    "Ambos flujos muestran una **tendencia creciente hacia junio**, especialmente las salidas, lo que podría reflejar un aumento "
+                    "en la demanda en Baleares o una mejora en la capacidad exportadora del sistema."
                 )
                 
                 fig = px.area(
