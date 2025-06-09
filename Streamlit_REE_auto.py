@@ -608,6 +608,7 @@ def main():
             
             elif tabla == "intercambios":
                 st.subheader("Mapa Coroplético de Intercambios Eléctricos")
+
                 st.markdown(
                     "**Intercambios eléctricos internacionales**\n\n"
                     "Este mapa muestra el **saldo neto de energía** (exportaciones menos importaciones) entre España y los países vecinos: "
@@ -616,10 +617,11 @@ def main():
                     "Este análisis es clave para comprender el papel de España como nodo energético regional, identificar dependencias o excedentes, "
                     "y analizar cómo varían los flujos en situaciones especiales como picos de demanda o apagones."
                 )
-                
-                # Agrupamos y renombramos columnas
+
+                    # Agrupamos y renombramos columnas
                 df_map = df.groupby("primary_category")["value"].sum().reset_index()
                 df_map.columns = ["pais_original", "Total"]
+
 
                 # Mapeo de nombres a inglés (para coincidir con el GeoJSON)
                 nombre_map = {
