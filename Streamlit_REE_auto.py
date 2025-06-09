@@ -503,6 +503,14 @@ def main():
                             # Si las líneas siguen entrecortadas, considera añadir `connectgaps=True`
                             # fig.update_traces(connectgaps=True)
                             st.plotly_chart(fig, use_container_width=True)
+
+                            st.markdown(
+                                "**Balance eléctrico diario por categoría**\n\n"
+                                "Este gráfico representa el balance energético entre las distintas fuentes y usos diarios. Cada barra agrupa los componentes "
+                                "principales del sistema: generación, consumo, pérdidas y exportaciones.\n\n"
+                                "Es útil para entender si hay superávit, déficit o equilibrio en la red cada día, y cómo se distribuye el uso de energía entre sectores."
+                            )
+
                     else:
                         st.warning(f"No hay suficientes datos de Demanda disponibles para la comparación.")
 
