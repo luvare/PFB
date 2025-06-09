@@ -504,12 +504,6 @@ def main():
                             # fig.update_traces(connectgaps=True)
                             st.plotly_chart(fig, use_container_width=True)
 
-                            st.markdown(
-                                "**Balance eléctrico diario por categoría**\n\n"
-                                "Este gráfico representa el balance energético entre las distintas fuentes y usos diarios. Cada barra agrupa los componentes "
-                                "principales del sistema: generación, consumo, pérdidas y exportaciones.\n\n"
-                                "Es útil para entender si hay superávit, déficit o equilibrio en la red cada día, y cómo se distribuye el uso de energía entre sectores."
-                            )
 
                     else:
                         st.warning(f"No hay suficientes datos de Demanda disponibles para la comparación.")
@@ -518,7 +512,7 @@ def main():
                     st.subheader("Identificación de Años Outliers (Demanda Anual Total)")
 
                     st.markdown(
-                        "🗺️ **Este gráfico muestra los años identificados como outliers en la demanda total anual.**\n\n"
+                        "**Este gráfico muestra los años identificados como outliers en la demanda total anual.**\n\n"
                         "En este caso, solo se detecta como outlier el año **2025**, lo cual es esperable ya que todavía no ha finalizado "
                         "y su demanda acumulada es significativamente menor.\n\n"
                         "Los años **2022, 2023 y 2024** presentan una demanda anual muy similar, en torno a los **700 MW**, por lo que "
@@ -583,6 +577,13 @@ def main():
             elif tabla == "balance":
                 fig = px.bar(df, x="datetime", y="value", color="primary_category", barmode="group", title="Balance Eléctrico")
                 st.plotly_chart(fig, use_container_width=True)
+                 st.markdown(
+                                "**Balance eléctrico diario por categoría**\n\n"
+                                "Este gráfico representa el balance energético entre las distintas fuentes y usos diarios. Cada barra agrupa los componentes "
+                                "principales del sistema: generación, consumo, pérdidas y exportaciones.\n\n"
+                                "Es útil para entender si hay superávit, déficit o equilibrio en la red cada día, y cómo se distribuye el uso de energía entre sectores."
+                            )
+            
             elif tabla == "generacion":
                 df['date'] = df['datetime'].dt.date  # Para reducir a nivel diario (si no lo tienes)
 
@@ -596,9 +597,26 @@ def main():
                     title="Generación diaria agregada por tipo"
                 )
                 st.plotly_chart(fig, use_container_width=True)
+                st.markdown(
+                    "**Generación diaria agregada por tipo**\n\n"
+                    "Se visualiza la evolución de la generación eléctrica por fuente: renovables (eólica, solar, hidroeléctrica) y no renovables "
+                    "(gas, nuclear, etc.).\n\n"
+                    "Esta gráfica permite observar patrones como aumentos de producción renovable en días soleados o ventosos, así como la estabilidad "
+                    "de tecnologías de base como la nuclear. Es clave para analizar la transición energética."
+                    )
+
+            
             elif tabla == "intercambios":
                 st.subheader("Mapa Coroplético de Intercambios Eléctricos")
-
+                st.markdown(
+                    "**Intercambios eléctricos internacionales**\n\n"
+                    "Este mapa muestra el **saldo neto de energía** (exportaciones menos importaciones) entre España y los países vecinos: "
+                    "**Francia, Portugal, Marruecos y Andorra**.\n\n"
+                    "Los valores positivos indican que **España exporta más energía de la que importa**, mientras que los negativos reflejan lo contrario.\n\n"
+                    "Este análisis es clave para comprender el papel de España como nodo energético regional, identificar dependencias o excedentes, "
+                    "y analizar cómo varían los flujos en situaciones especiales como picos de demanda o apagones."
+                )
+                
                 # Agrupamos y renombramos columnas
                 df_map = df.groupby("primary_category")["value"].sum().reset_index()
                 df_map.columns = ["pais_original", "Total"]
@@ -726,7 +744,7 @@ def main():
 
             df_box["month"] = df_box["datetime"].dt.month
             st.markdown(
-                "📊 **Distribución de Demanda por mes (2025)**\n\n"
+                "**Distribución de Demanda por mes (2025)**\n\n"
                 "La demanda eléctrica presenta **mayor variabilidad y valores más altos en los primeros tres meses del año**, "
                 "especialmente en **enero**.\n\n"
                 "En **abril**, se observa una mayor cantidad de valores atípicos a la baja, lo cual coincide con el "
