@@ -509,6 +509,15 @@ def main():
                     # --- Gráfico de Identificación de años outliers (mantenida de antes) ---
                     st.subheader("Identificación de Años Outliers (Demanda Anual Total)")
 
+                    st.markdown(
+                        "🗺️ **Este gráfico muestra los años identificados como outliers en la demanda total anual.**\n\n"
+                        "En este caso, solo se detecta como outlier el año **2025**, lo cual es esperable ya que todavía no ha finalizado "
+                        "y su demanda acumulada es significativamente menor.\n\n"
+                        "Los años **2022, 2023 y 2024** presentan una demanda anual muy similar, en torno a los **700 MW**, por lo que "
+                        "no se consideran outliers según el criterio del rango intercuartílico (IQR)."
+                    )
+
+
                     # Asegurarse de que el df tiene la columna 'year'
                     if 'year' not in df.columns:
                         df['year'] = df['datetime'].dt.year
@@ -615,6 +624,19 @@ def main():
                     legend_name="Saldo neto de energía (MWh)"
                 ).add_to(world_map)
 
+                st.markdown(
+                "**Mapa de intercambios internacionales de energía – Contexto del apagón del 28 de abril de 2025**\n\n"
+                "Este mapa revela cómo se comportaron los **flujos internacionales de energía** en torno al **apagón del 28 de abril de 2025**.\n\n"
+                "Una **disminución en los intercambios con Francia o Marruecos** podría indicar una disrupción en el suministro internacional "
+                "o un corte de emergencia.\n\n"
+                "Si **España aparece como exportadora neta incluso durante el apagón**, esto sugiere que el problema no fue de generación, "
+                "sino posiblemente **interno** (fallo en la red o desconexión de carga).\n\n"
+                "La inclusión de **Andorra y Marruecos** proporciona un contexto más completo del comportamiento eléctrico en la península "
+                "y el norte de África.\n\n"
+                "Este gráfico es crucial para analizar si los intercambios internacionales actuaron de forma inusual, lo cual puede dar pistas "
+                "sobre causas externas o coordinación regional durante el evento."
+                )
+
                 # Mostrar en Streamlit
                 st_folium(world_map, width=1285)
 
@@ -626,7 +648,14 @@ def main():
                 df_ib_grouped = df_ib.groupby(['datetime', 'primary_category'])['value'].sum().reset_index()
 
                 df_ib_grouped['value'] = df_ib_grouped['value'].abs()
-
+                st.markdown(
+                "**Intercambios de energía con Baleares (Primer semestre 2025)**\n\n"
+                "Durante el primer semestre de **2025**, las **salidas de energía hacia Baleares** superan consistentemente a las entradas, "
+                "lo que indica que el sistema peninsular actúa mayormente como **exportador neto de energía**.\n\n"
+                "Ambos flujos muestran una **tendencia creciente hacia junio**, especialmente las salidas, lo que podría reflejar un aumento "
+                "en la demanda en Baleares o una mejora en la capacidad exportadora del sistema."
+                )
+                
                 fig = px.area(
                     df_ib_grouped,
                     x="datetime",
@@ -664,7 +693,13 @@ def main():
                 .pivot(index='weekday', columns='hour', values='value')
                 .reindex(days_order)
             )
-
+            st.markdown(
+                "**Demanda promedio por día y hora**\n\n"
+                "La demanda eléctrica promedio es más alta entre semana, especialmente de **lunes a viernes**, "
+                "con picos concentrados entre las **7:00 y 21:00 horas**. El máximo se registra los **viernes alrededor de las 19:00 h**, "
+                "superando los **32 000 MW**.\n\n"
+                "En contraste, los **fines de semana** muestran una demanda notablemente más baja y estable."
+            )
             fig1 = px.imshow(
                 heatmap_data,
                 labels=dict(x="Hora del día", y="Día de la semana", color="Demanda promedio (MW)"),
@@ -682,7 +717,14 @@ def main():
             df_box = df.copy()
 
             df_box["month"] = df_box["datetime"].dt.month
-
+            st.markdown(
+                "📊 **Distribución de Demanda por mes (2025)**\n\n"
+                "La demanda eléctrica presenta **mayor variabilidad y valores más altos en los primeros tres meses del año**, "
+                "especialmente en **enero**.\n\n"
+                "En **abril**, se observa una mayor cantidad de valores atípicos a la baja, lo cual coincide con el "
+                "**apagón nacional del 28/04/2025**, donde España estuvo sin luz durante aproximadamente 8 a 10 horas.\n\n"
+                "A partir de **mayo**, la demanda se estabiliza ligeramente, con una reducción progresiva en la mediana mensual."
+            )
             fig2 = px.box(
                 df_box,
                 x="month",
